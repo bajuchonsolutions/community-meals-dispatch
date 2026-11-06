@@ -9,7 +9,7 @@
     {
       "binding": "DB",
       "database_name": "community-meals-db",
-      "database_id": "51c10c6d-b6a5-4347-84d5-de5a088f1717"
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
     }
   ],
   "r2_buckets": [
@@ -21,7 +21,7 @@
   "kv_namespaces": [
     {
       "binding": "CACHE",
-      "id": "88bf76341d1e49a48aa48e6ba3bd549e"
+      "id": "REPLACE_WITH_KV_NAMESPACE_ID"
     }
   ],
   "routes": [
