@@ -1,3 +1,9 @@
 name = "community-meals-dispatch"
 main = "src/index.ts"
 compatibility_date = "2024-11-05"
+compatibility_flags = ["nodejs_compat"]
+
+# DO NOT put actual keys here for GitHub commits. 
+# Use placeholder or empty strings for local dev, and real secrets in Cloudflare Dashboard.
+[vars]
+MEAL_ROUTING_SECRET = ""
