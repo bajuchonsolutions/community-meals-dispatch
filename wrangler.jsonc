@@ -1,0 +1,33 @@
+{
+  "name": "community-meals-dispatch",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./public"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "community-meals-db",
+      "database_id": "51c10c6d-b6a5-4347-84d5-de5a088f1717"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "community-meals-images"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "88bf76341d1e49a48aa48e6ba3bd549e"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "ablecraft.org/*",
+      "custom_domain": true
+    }
+  ]
+}
