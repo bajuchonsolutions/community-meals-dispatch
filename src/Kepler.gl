@@ -1,0 +1,87 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
+
+class ProximityScannerButton extends StatefulWidget {
+  final double targetLat;
+  final double targetLng;
+  final VoidCallback onUnlockScan;
+
+  const ProximityScannerButton({
+    Key? key,
+    required this.targetLat,
+    required this.targetLng,
+    required this.onUnlockScan,
+  }) : super(key: key);
+
+  @override
+  _ProximityScannerButtonState createState() => _ProximityScannerButtonState();
+}
+
+class _ProximityScannerButtonState extends State<ProximityScannerButton> with SingleTickerProviderStateMixin {
+  bool isUnlocked = false;
+  double currentDistance = double.infinity;
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
+    _checkGeofence();
+  }
+
+  Future<void> _checkGeofence() async {
+    // Listen to real-time location stream
+    Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 5)
+    ).listen((Position position) {
+      double distanceInMeters = Geolocator.distanceBetween(
+        position.latitude, position.longitude, 
+        widget.targetLat, widget.targetLng
+      );
+      
+      setState(() {
+        currentDistance = distanceInMeters;
+        // 50-meter Proximity Lock logic
+        if (distanceInMeters <= 50.0 && !isUnlocked) {
+          isUnlocked = true;
+          HapticFeedback.heavyImpact(); // Haptic confirmation for single-handed UX
+        } else if (distanceInMeters > 50.0) {
+          isUnlocked = false;
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        return ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isUnlocked 
+                ? Color.lerp(const Color(0xFFFF9900), const Color(0xFFE68A00), _pulseController.value) // Logistics Orange Pulse
+                : const Color(0xFF1E1E1E), // Disabled Surface Grey
+            minimumSize: const Size(double.infinity, 80), // Large tap target
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+          onPressed: isUnlocked ? widget.onUnlockScan : null,
+          child: Text(
+            isUnlocked ? "UNLOCK: SCAN MEAL QR" : "DRIVE TO DESTINATION (${currentDistance.toStringAsFixed(0)}m)",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+        );
+      }
+    );
+  }
+}
