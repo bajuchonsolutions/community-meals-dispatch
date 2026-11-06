@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import React, { useEffect } from 'react';
+import { createStore, combineReducers, applyMiddleware } from 'redux';
+import { Provider, useDispatch } from 'react-redux';
+import keplerGlReducer from 'kepler.gl/reducers';
+import { addDataToKeplerGl } from 'kepler.gl/actions';
+import KeplerGl from 'kepler.gl';
+import { taskMiddleware } from 'react-palm/tasks';
 
 class ProximityScannerButton extends StatefulWidget {
   final double targetLat;
@@ -84,4 +91,73 @@ class _ProximityScannerButtonState extends State<ProximityScannerButton> with Si
       }
     );
   }
+}
+// 1. Initialize Redux store for Kepler.gl state management
+const reducers = combineReducers({
+  keplerGl: keplerGlReducer
+});
+const store = createStore(reducers, {}, applyMiddleware(taskMiddleware));
+
+const MapDashboard = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    // 2. Fetch the GeoJSON payload from the Analytics Backend
+    const fetchPulseData = async () => {
+      const response = await fetch('/v1/analytics/spatial/delivery-pulse');
+      const geojsonData = await response.json();
+
+      // 3. Inject data into Kepler.gl instance
+      dispatch(
+        addDataToKeplerGl({
+          datasets: {
+            info: { label: 'Daily Delivery Flux', id: 'delivery_pulse' },
+            data: geojsonData
+          },
+          config: {
+            visState: {
+              layers: [{
+                type: 'point',
+                config: {
+                  color: [255, 153, 0], // CommuniMeal Orange
+                  visConfig: { radius: 10, opacity: 0.8 }
+                }
+              }]
+            }
+          }
+        })
+      );
+    };
+    
+    fetchPulseData();
+  }, [dispatch]);
+
+  return (
+    <div style={{ width: '100vw', height: '100vh', display: 'flex' }}>
+      {/* Map Container occupying 80% */}
+      <div style={{ flex: '0 0 80%' }}>
+        <KeplerGl
+          id="admin_map"
+          width={window.innerWidth * 0.8}
+          height={window.innerHeight}
+          mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
+          theme="dark"
+        />
+      </div>
+      
+      {/* Operations Sidebar */}
+      <div style={{ flex: '0 0 20%', backgroundColor: '#121212', color: '#FFF', padding: '16px' }}>
+        <h2 style={{ color: '#03DAC6' }}>CommuniMeal Ops</h2>
+        <p>Live exception feed and AI Dispatcher will mount here.</p>
+      </div>
+    </div>
+  );
+};
+
+export default function AdminApp() {
+  return (
+    <Provider store={store}>
+      <MapDashboard />
+    </Provider>
+  );
 }
