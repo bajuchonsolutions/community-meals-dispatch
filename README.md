@@ -44,6 +44,35 @@ npm run dev
 npm run deploy
 ```
 
+## Set the API key secret
+
+All `/api/*` endpoints require an `x-api-key` header. Set the secret:
+
+```bash
+npx wrangler secret put API_KEY
+# paste a strong key, e.g.: cm-dispatch-7f3a9b2e1d8c
+```
+
+Or set it in the dashboard: your Worker → **Settings** → **Variables and Secrets** → **Add** → type `API_KEY` → paste your key → **Encrypt**.
+
+Clients must send the header on every API request:
+
+```bash
+curl -H "x-api-key: YOUR_KEY" https://ablecraft.org/api/meals
+```
+
+Public routes (no key needed): `/`, `/health`, `/images/*`.
+
+## Seed data (optional, for testing)
+
+Run `seed.sql` in the D1 dashboard Query tab, or:
+
+```bash
+npm run db:seed:remote   # production DB
+```
+
+This adds 5 meals, 5 schedules, and 5 orders.
+
 ## Custom domain
 
 `wrangler.jsonc` already declares a custom domain route for `ablecraft.org/*`.
